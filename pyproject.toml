@@ -1,7 +1,7 @@
 [project]
 name = "pyscribest"
-version = "1.0.0"
-description = "Audio transcriber using ElevenLabs API."
+version = "1.1.0"
+description = "Audio transcriber powered by the ElevenLabs Scribe AI model."
 authors = [{ name = "tooru", email = "tooru@tooru.mom" }]
 dependencies = [
     "elevenlabs~=2.27.0",
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: End Users/Desktop",
@@ -36,6 +37,7 @@ Repository = "https://github.com/tooruu/pyscribe"
 
 [project.scripts]
 pyscribe = "pyscribe.cli:main"
+pyscribest = "pyscribe.cli:main"
 
 [build-system]
 requires = ["uv-build~=0.9.0"]
