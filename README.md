@@ -1,10 +1,6 @@
 # :musical_note: ***Pyscribe***
 A robust tool to transcribe audio (including music) files and URLs using **ElevenLabs Scribe** AI model.
 
-> [!WARNING]
-> Project is in active development. Standalone binaries are not yet available.\
-> Automated creation of GitHub releases and publishing to PyPI coming soon.
-
 ## :clipboard: Requirements
 - 64-bit operating system
 - Python 3.8+ if not using standalone binary
