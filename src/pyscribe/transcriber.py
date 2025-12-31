@@ -22,7 +22,7 @@ def transcribe(
 ) -> str:
     file, kwargs = prep_convert_args(file_uri, audio_events, language)
     logger.info("Transcribing... This may take a while depending on the file size.")
-    if not file:
+    if file is None:
         response = client.speech_to_text.convert(**kwargs)
         return cast("SpeechToTextChunkResponseModel", response).text
 
@@ -39,7 +39,7 @@ async def atranscribe(
 ) -> str:
     file, kwargs = prep_convert_args(file_uri, audio_events, language)
     logger.info("Transcribing... This may take a while depending on the file size.")
-    if not file:
+    if file is None:
         response = await client.speech_to_text.convert(**kwargs)
         return cast("SpeechToTextChunkResponseModel", response).text
 

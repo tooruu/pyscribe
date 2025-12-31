@@ -1054,10 +1054,14 @@ wheels = [
 
 [[package]]
 name = "pyscribest"
-version = "1.1.1"
+version = "1.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "elevenlabs" },
+]
+
+[package.optional-dependencies]
+keyring = [
     { name = "keyring", version = "25.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "keyring", version = "25.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
 ]
@@ -1068,19 +1072,22 @@ bundle = [
 ]
 dev = [
     { name = "basedpyright" },
+    { name = "pyscribest", extra = ["keyring"] },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "elevenlabs", specifier = "~=2.27.0" },
-    { name = "keyring", specifier = ">=25.5" },
+    { name = "keyring", marker = "extra == 'keyring'", specifier = ">=25.5" },
 ]
+provides-extras = ["keyring"]
 
 [package.metadata.requires-dev]
 bundle = [{ name = "pyinstaller", specifier = "~=6.17.0" }]
 dev = [
     { name = "basedpyright", specifier = "~=1.36.0" },
+    { name = "pyscribest", extras = ["keyring"] },
     { name = "ruff", specifier = "~=0.14.0" },
 ]
 

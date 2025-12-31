@@ -6,7 +6,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import keyring
+try:
+    import keyring
+except ImportError:
+    keyring = None
 
 from pyscribe.errors import FileTooLargeError
 
@@ -32,11 +35,15 @@ MAX_FILE_SIZE_HUMAN = f"{MAX_FILE_SIZE_BYTES / 1e9:g} GB"
 
 
 def get_keyring_api_key() -> str | None:
+    if keyring is None:
+        return None
     logger.debug("Getting API key from keyring")
     return keyring.get_password(KEYRING_SERVICE_NAME, KEYRING_USERNAME)
 
 
 def set_keyring_api_key(api_key: str) -> None:
+    if keyring is None:
+        return
     logger.debug("Saving API key to keyring")
     keyring.set_password(KEYRING_SERVICE_NAME, KEYRING_USERNAME, api_key)
 

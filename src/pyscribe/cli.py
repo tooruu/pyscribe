@@ -5,6 +5,7 @@ import logging
 import logging.config
 import os
 import sys
+from getpass import getpass
 from io import TextIOWrapper
 from typing import cast
 
@@ -31,9 +32,9 @@ ERROR_MESSAGES = {
 
 class Args(argparse.Namespace):
     source: str
-    key: str | None
     lang: str | None
     full: bool
+    no_keyring: bool
     verbose: bool
 
 
@@ -44,12 +45,7 @@ def parse_args() -> Args:
     )
     parser.add_argument(
         "source",
-        help="File path or HTTPS URL to transcribe",
-    )
-    parser.add_argument(
-        "--key",
-        help="ElevenLabs API key",
-        default=os.getenv("ELEVENLABS_API_KEY"),
+        help="file path or HTTPS URL to transcribe",
     )
     parser.add_argument(
         "--lang",
@@ -59,6 +55,11 @@ def parse_args() -> Args:
         "--full",
         action="store_true",
         help="insert audio event tags like [laughter]",
+    )
+    parser.add_argument(
+        "--no-keyring",
+        action="store_true",
+        help="avoid reading or writing key to the system keyring",
     )
     parser.add_argument(
         "-v",
@@ -107,7 +108,7 @@ def setup_logging(verbose: bool) -> None:
     )
 
 
-def handle_error(error: ApiError) -> None:
+def handle_api_error(error: ApiError) -> None:
     status_code = error.status_code or 500
     if status_code == 422:
         logger.error("Unprocessable Entity. Server rejected the request. Try another format?")
@@ -121,38 +122,63 @@ def handle_error(error: ApiError) -> None:
             logger.exception("Unexpected error.")
 
 
-def main() -> None:
+def get_api_key(skip_keyring: bool) -> str:
+    logger.debug("Checking environment for API key.")
+    if api_key := os.getenv("ELEVENLABS_API_KEY"):
+        return api_key
+
+    if not skip_keyring:
+        logger.debug("Checking keyring for API key.")
+        if api_key := get_keyring_api_key():
+            return api_key
+
+    if sys.stdin.isatty():
+        logger.debug("Terminal detected. Using getpass.")
+        return getpass("ElevenLabs API key: ").strip()
+
+    logger.debug("Reading stdin for API key.")
+    return sys.stdin.readline().strip()
+
+
+def main() -> int:
     if sys.platform == "win32" and isinstance(sys.stdout, TextIOWrapper):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     args = parse_args()
-    logger.debug("Parsed arguments: %s", args)
     setup_logging(args.verbose)
+    logger.debug("Parsed arguments: %s", args)
 
-    api_key = args.key or get_keyring_api_key()
+    try:
+        api_key = get_api_key(args.no_keyring)
+    except KeyboardInterrupt:
+        logger.debug("\nSIGINT received, exiting.")
+        return 1
 
     if not api_key:
-        logger.critical("API key is required. Use --key parameter or set ELEVENLABS_API_KEY env var.")
-        sys.exit(1)
+        logger.critical("API key is required.")
+        return 1
+    logger.debug("API key acquired.")
 
     client = ElevenLabs(api_key=api_key)
     try:
         lyrics = transcribe(client, args.source, args.full, args.lang)
     except ApiError as e:
-        handle_error(e)
-        sys.exit(1)
+        handle_api_error(e)
+        return 1
     except (FileNotFoundError, FileTooLargeError) as e:
         logger.critical(e)
-        sys.exit(1)
+        return 1
 
     if lyrics.strip():
         print(lyrics)
     else:
         logger.warning("Server returned an empty transcript.")
 
-    if args.key:
+    if not args.no_keyring:
         set_keyring_api_key(api_key)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

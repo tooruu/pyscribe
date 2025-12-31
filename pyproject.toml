@@ -1,11 +1,10 @@
 [project]
 name = "pyscribest"
-version = "1.1.1"
+version = "1.2.0"
 description = "Audio transcriber powered by the ElevenLabs Scribe AI model."
 authors = [{ name = "tooru", email = "tooru@tooru.mom" }]
 dependencies = [
     "elevenlabs~=2.27.0",
-    "keyring>=25.5",
 ]
 requires-python = ">=3.8"
 readme = "README.md"
@@ -27,10 +26,16 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Analysis",
 ]
 
+[project.optional-dependencies]
+keyring = [
+    "keyring>=25.5",
+]
+
 [dependency-groups]
 dev = [
     "basedpyright~=1.36.0",
     "ruff~=0.14.0",
+    "pyscribest[keyring]",
 ]
 bundle = [
     "pyinstaller~=6.17.0",

@@ -49,10 +49,10 @@ jobs:
 
       - name: Build with PyInstaller
         run: >
-          uv run --no-dev --group bundle pyinstaller src/pyscribe/cli.py
+          uv run --frozen --no-dev --all-extras --group bundle pyinstaller src/pyscribe/cli.py
           --onefile --name pyscribe --optimize 2 --icon NONE ${{ steps.strip.outputs.flag }}
 
-      - name: Smoke test (bundle)
+      - name: Smoke test
         shell: bash
         run: |
           PROJECT_VER=`uv version --short`
@@ -63,19 +63,26 @@ jobs:
           [ "$PROJECT_VER" = "$BUNDLE_VER" ]
 
       - name: Archive binary
+        id: archive
         shell: bash
-        env:
-          ARCHIVE_NAME: pyscribe-${{ matrix.platform }}
         run: |
           cd dist
           if [ ${{ runner.os }} = Windows ]; then
-            7z a "../$ARCHIVE_NAME.zip" *
+            ARCHIVE_NAME=pyscribe-${{ matrix.platform }}.zip
+            7z a "../$ARCHIVE_NAME" *
           else
-            tar -cvzf "../$ARCHIVE_NAME.tar.gz" *
+            ARCHIVE_NAME=pyscribe-${{ matrix.platform }}.tar.gz
+            tar -cvzf "../$ARCHIVE_NAME" *
           fi
+          echo "artifact_name=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: ${{ steps.archive.outputs.artifact_name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.platform }}
-          path: pyscribe-${{ matrix.platform }}.*
+          path: ${{ steps.archive.outputs.artifact_name }}

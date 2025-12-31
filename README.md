@@ -7,17 +7,26 @@ A robust tool to transcribe audio (including music) files and URLs using **Eleve
 - ElevenLabs API key ([instructions](#zap-usage) below)
 
 ## :rocket: Installation
-
 ### Prebuilt standalone binary (Windows, macOS, Linux)
-Download a standalone binary from [the latest release](https://github.com/tooruu/pyscribe/releases/latest).
+Download a standalone binary from
+[the latest release](https://github.com/tooruu/pyscribe/releases/latest). Comes with keyring support.
+
+### Install from PyPI
+If you don't want to enter your API key every time, the optional `keyring` dependency allows
+***Pyscribe*** to securely store it in your system's credential store.
+```bash
+# Recommended: Installation with keyring support
+pip install "pyscribest[keyring]"
+# Minimal installation without keyring support
+pip install pyscribest
+```
 
 ### Run the tool without installation using uv[^1]
 ```bash
+# With keyring support
+uvx "pyscribest[keyring]" "path/or/url.mp3"
+# Without keyring support
 uvx pyscribest "path/or/url.mp3"
-```
-### Install from PyPI[^2]
-```bash
-pip install pyscribest
 ```
 ###### pyscribe was taken [🥹](https://discord.gg/YdEXsZN)
 
@@ -28,17 +37,19 @@ pip install pyscribest
 > and create an API key with access to **Speech to Text** endpoint.
 >
 > The script looks for the API key in the following order:
-> 1. **Command-Line Parameter**: `--key`
-> 2. **Environment Variable**: `ELEVENLABS_API_KEY`
-> 3. **OS Keyring**: Secure credential store (automatically saved if you use the `--key` parameter)
+> 1. **Environment Variable**: Looks for the `ELEVENLABS_API_KEY` environment variable.
+> 2. **System Credential Store**: Automatically saved to by the other methods if `keyring` is installed.
+> 3. **Terminal Prompt**: If terminal is detected, prompt user for the key without displaying it.
+> 4. **Standard Input**: Read one line from `sys.stdin`.
 
 ### Basic Transcription
 ```bash
 pyscribe "https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3"
 ```
 
-Successful output is always written to `sys.stdout`. Everything else prints to `sys.stderr`.\
-Use your shell's **output redirection operator** to write to disk.
+In the spirit of Unix philosophy only successful transcription prints to `sys.stdout`.
+Everything else is written to `sys.stderr`.\
+Use your shell's **output redirection operator** to write transcription to disk.
 
 ```bash
 pyscribe "Never Gonna Give You Up.webm" > lyrics.txt
@@ -50,14 +61,16 @@ pyscribe "Never Gonna Give You Up.webm" > lyrics.txt
 > The `pyscribest` entrypoint is intended to avoid typing `uvx --from pyscribest pyscribe`.
 
 ### CLI Options
-- `--full`: Include this flag to insert audio event tags like `[laughter]`
+- `--full`: Insert audio event tags like `[laughter]`.
 - `--lang`: An [ISO-639-1](https://www.loc.gov/standards/iso639-2/php/English_list.php) or
-  [ISO-639-3](https://iso639-3.sil.org/code_tables) language code[^3] for improved performance,
-  e.g. `de` or `deu` for German
-- `--key`: ElevenLabs API key (this will be saved to your keyring for future use)
+  [ISO-639-3](https://iso639-3.sil.org/code_tables) language code[^2] for improved performance,
+  e.g. `de` or `deu` for German.
+- `--no-keyring`: Avoid reading or writing key to the system keyring.
+- `-v`, `--verbose`: Show diagnostic messages.
+- `-V`, `--version`: Print program's version and exit.
 
 ```bash
-pyscribe --lang deu --full recording.wav
+pyscribe --lang deu --full recording.wav -v
 ```
 
 ## :hammer_and_wrench: Integration
@@ -88,7 +101,6 @@ print(text)
 > The `elevenlabs` SDK is included as a dependency; no separate installation is required.
 
 ## :stop_sign: API Limitations
-
 ### Concurrency
 ElevenLabs imposes [limitations](https://elevenlabs.io/docs/overview/models#concurrency-and-priority)
 on concurrent **Speech to Text** requests.\
@@ -96,8 +108,8 @@ For example, the free plan only allows 8 transcription requests at the same time
 
 ### File Size
 ElevenLabs also imposes different file size limits:
-- **Local files** &mdash; up to 3 GB[^4]
-- **Remote HTTPS files** &mdash; up to 2 GB[^5]
+- **Local files** &mdash; up to 3 GB[^3]
+- **Remote HTTPS files** &mdash; up to 2 GB[^4]
 
 ### Features
 ***Pyscribe*** focuses on end users and aims to provide a simple interface for the **Scribe** model.\
@@ -108,7 +120,6 @@ As such, this tool does not implement all **Scribe** features, including but not
 - Output in other formats
 
 [^1]: [Documentation for `uvx`](https://docs.astral.sh/uv/guides/tools)
-[^2]: [Project page on PyPI](https://pypi.org/project/pyscribest)
-[^3]: [Supported Languages](https://elevenlabs.io/docs/overview/capabilities/speech-to-text#supported-languages)
-[^4]: [`file` Parameter Description](https://elevenlabs.io/docs/api-reference/speech-to-text/convert#request.body.file.file)
-[^5]: [`cloud_storage_url` Parameter Description](https://elevenlabs.io/docs/api-reference/speech-to-text/convert#request.body.cloud_storage_url.cloud_storage_url)
+[^2]: [Supported Languages](https://elevenlabs.io/docs/overview/capabilities/speech-to-text#supported-languages)
+[^3]: [`file` Parameter Description](https://elevenlabs.io/docs/api-reference/speech-to-text/convert#request.body.file.file)
+[^4]: [`cloud_storage_url` Parameter Description](https://elevenlabs.io/docs/api-reference/speech-to-text/convert#request.body.cloud_storage_url.cloud_storage_url)
