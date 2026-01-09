@@ -1,10 +1,10 @@
 [project]
 name = "pyscribest"
-version = "1.2.0"
+version = "1.2.1"
 description = "Audio transcriber powered by the ElevenLabs Scribe AI model."
 authors = [{ name = "tooru", email = "tooru@tooru.mom" }]
 dependencies = [
-    "elevenlabs~=2.27.0",
+    "elevenlabs~=2.29.0",
 ]
 requires-python = ">=3.8"
 readme = "README.md"

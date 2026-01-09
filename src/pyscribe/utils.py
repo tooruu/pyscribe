@@ -78,7 +78,7 @@ def prep_convert_args(
 ) -> tuple[Path | None, ScribeArgs]:
     source = disambiguate_source(source)
     kwargs: ScribeArgs = {
-        "model_id": "scribe_v1",
+        "model_id": "scribe_v2",
         "tag_audio_events": audio_events,
     }
     if language:
